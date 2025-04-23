@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.WenzhangMuluCollectionDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.wenzhang_mulu_id as wenzhangMuluId
+        ,a.yonghu_id as yonghuId
+        ,a.wenzhang_mulu_collection_types as wenzhangMuluCollectionTypes
+        ,a.insert_time as insertTime
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.WenzhangMuluCollectionView" >
+        SELECT
+        <include refid="Base_Column_List" />
+
+--         级联表的字段
+        ,wenzhangMulu.wenzhang_mulu_name as wenzhangMuluName
+        ,wenzhangMulu.wenzhang_mulu_photo as wenzhangMuluPhoto
+        ,wenzhangMulu.wenzhang_mulu_content as wenzhangMuluContent
+        ,yonghu.yonghu_name as yonghuName
+        ,yonghu.yonghu_phone as yonghuPhone
+        ,yonghu.yonghu_id_number as yonghuIdNumber
+        ,yonghu.yonghu_photo as yonghuPhoto
+        ,yonghu.yonghu_email as yonghuEmail
+        ,yonghu.new_money as newMoney
+        ,yonghu.vip_types as vipTypes
+
+        FROM wenzhang_mulu_collection  a
+        left JOIN wenzhang_mulu wenzhangMulu ON a.wenzhang_mulu_id = wenzhangMulu.id
+        left JOIN yonghu yonghu ON a.yonghu_id = yonghu.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test="params.wenzhangMuluId != null and params.wenzhangMuluId != ''">
+                and (
+                    a.wenzhang_mulu_id = #{params.wenzhangMuluId}
+                )
+            </if>
+            <if test="params.yonghuId != null and params.yonghuId != ''">
+                and (
+                    a.yonghu_id = #{params.yonghuId}
+                )
+            </if>
+            <if test="params.wenzhangMuluCollectionTypes != null and params.wenzhangMuluCollectionTypes != ''">
+                and a.wenzhang_mulu_collection_types = #{params.wenzhangMuluCollectionTypes}
+            </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+
+                <!-- 判断文章目录的id不为空 -->
+            <if test=" params.wenzhangMuluIdNotNull != '' and params.wenzhangMuluIdNotNull != null and params.wenzhangMuluIdNotNull != 'null' ">
+                and a.wenzhang_mulu_id IS NOT NULL
+            </if>
+            <if test="params.wenzhangId != null  and params.wenzhangId != ''">
+                and wenzhangMulu.wenzhang_id = #{params.wenzhangId}
+            </if>
+            <if test=" params.wenzhangMuluName != '' and params.wenzhangMuluName != null and params.wenzhangMuluName != 'null' ">
+                and wenzhangMulu.wenzhang_mulu_name like CONCAT('%',#{params.wenzhangMuluName},'%')
+            </if>
+            <if test=" params.wenzhangMuluContent != '' and params.wenzhangMuluContent != null and params.wenzhangMuluContent != 'null' ">
+                and wenzhangMulu.wenzhang_mulu_content like CONCAT('%',#{params.wenzhangMuluContent},'%')
+            </if>
+                <!-- 判断用户的id不为空 -->
+            <if test=" params.yonghuIdNotNull != '' and params.yonghuIdNotNull != null and params.yonghuIdNotNull != 'null' ">
+                and a.yonghu_id IS NOT NULL
+            </if>
+            <if test=" params.yonghuName != '' and params.yonghuName != null and params.yonghuName != 'null' ">
+                and yonghu.yonghu_name like CONCAT('%',#{params.yonghuName},'%')
+            </if>
+            <if test=" params.yonghuPhone != '' and params.yonghuPhone != null and params.yonghuPhone != 'null' ">
+                and yonghu.yonghu_phone like CONCAT('%',#{params.yonghuPhone},'%')
+            </if>
+            <if test=" params.yonghuIdNumber != '' and params.yonghuIdNumber != null and params.yonghuIdNumber != 'null' ">
+                and yonghu.yonghu_id_number like CONCAT('%',#{params.yonghuIdNumber},'%')
+            </if>
+            <if test=" params.yonghuEmail != '' and params.yonghuEmail != null and params.yonghuEmail != 'null' ">
+                and yonghu.yonghu_email like CONCAT('%',#{params.yonghuEmail},'%')
+            </if>
+            <if test="params.newMoneyStart != null ">
+                <![CDATA[  and yonghu.new_money >= #{params.newMoneyStart}   ]]>
+            </if>
+            <if test="params.newMoneyEnd != null ">
+                <![CDATA[  and yonghu.new_money <= #{params.newMoneyEnd}   ]]>
+            </if>
+            <if test="params.vipTypes != null  and params.vipTypes != ''">
+                and yonghu.vip_types = #{params.vipTypes}
+            </if>
+
+        </where>
+
+        order by a.${params.orderBy} desc 
+    </select>
+
+</mapper>
